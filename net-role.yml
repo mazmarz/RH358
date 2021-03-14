@@ -3,3 +3,16 @@
   become: true
   roles:
   - rhel-system-roles.network
+
+  tasks:
+
+  - name: ensure rsyslog is installed
+    yum:
+      state: present
+      name: rsyslog
+
+  - name: start and enable service
+    service:
+      state: started
+      enabled: true
+      name: rsyslog
