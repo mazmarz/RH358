@@ -1,0 +1,13 @@
+---
+- hosts: rh2
+  become: true
+  vars:
+    network_connections:
+      - name: enp0s9
+        type: ethernet
+        autoconnect: yes
+        ip:
+          address:
+            - 10.2.0.2/16
+  roles:
+  - rhel-system-roles.network

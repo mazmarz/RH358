@@ -1,0 +1,7 @@
+network_connections:
+  - name: enp0s9
+    type: ethernet
+    autoconnect: yes
+    ip:
+      address:
+        - 10.2.0.2/16
