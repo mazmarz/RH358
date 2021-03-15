@@ -1,10 +1,24 @@
 network_connections:
-  - name: enp0s9
-    type: ethernet
+
+  - name: team0
+    type: team
+    state: up
+    interface_name: team0
     autoconnect: yes
     ip:
       address:
-        - 10.2.0.2/16
-        - 10.2.1.2/16
-    persistent_state: present
+        - 10.1.1.2/16
+
+  - name: team0-enp0s9
+    interface_name: enp0s9
+    type: ethernet
     state: up
+    master: team0
+    persistent_state: present
+    
+  - name: team0-enp0s8
+    interface_name: enp0s8
+    type: ethernet
+    state: up
+    master: team0
+    persistent_state: present
