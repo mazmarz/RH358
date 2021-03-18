@@ -9,16 +9,15 @@ network_connections:
       address:
         - 10.1.1.2/16
 
-  - name: team0-enp0s9
+  - name: port1-team0
     interface_name: enp0s9
     type: ethernet
-    state: up
     master: team0
     persistent_state: present
     
-  - name: team0-enp0s8
+  - name: port0-team0
     interface_name: enp0s8
     type: ethernet
-    state: up
     master: team0
     persistent_state: present
+
