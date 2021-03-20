@@ -52,3 +52,34 @@
       name: named
       state: restarted
       enabled: true
+
+- hosts: bound
+  become: true
+  tags: unbound
+  tasks:
+
+  - name: first make sure it is installed
+    yum:
+      state: installed
+      name: unbound
+
+  - name: next copy of the template
+    template:
+      src: /home/devops/RH358/files/unbound.conf.template
+      dest: /etc/unbound/unbound.conf
+      mode: '0644'
+      setype: named_conf_t
+    notify: restart service
+  
+  - name: enable service
+    service:
+      name: unbound
+      enabled: true
+      state: started
+
+  handlers:
+
+  - name: restart service
+    service:
+      name: unbound
+      state: restarted

@@ -5,6 +5,10 @@ rh3 ansible_host=10.0.2.6
 [proxy]
 rh1
 
+[bound]
+rh1
+rh2
+
 
 [webservers]
 rh3
