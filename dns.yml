@@ -1,0 +1,35 @@
+---
+- hosts: rh3
+  become: true
+  tasks:
+
+
+  - name: take care of firewall
+    firewalld:
+      service: dns
+      immediate: true
+      state: enabled
+      permanent: true
+
+  - name: install dns
+    yum:
+      name: bind
+      state: installed
+
+  - name: copy over the required setup files
+    copy:
+      src: /home/devops/RH358/files/named.conf.template
+      dest: /etc/named.conf
+      group: named
+      mode: '0640'
+      setype: named_conf_t
+    notify: restart named
+
+
+  handlers:
+  
+  - name: restart named
+    service:
+      name: named
+      state: restarted
+      enabled: true

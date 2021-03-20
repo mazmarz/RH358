@@ -1,0 +1,19 @@
+---
+- hosts: rh2
+  become: true
+  roles:
+  - rhel-system-roles.network
+
+  tasks:
+    - name: Adjust team0 runner
+      command: /usr/bin/nmcli con mod team0 team.runner activebackup
+      notify: restart team0
+
+  handlers:
+    - name: disconnect team0
+      command: /usr/bin/nmcli dev dis team0
+      listen: restart team0
+
+    - name: start team0
+      command: /usr/bin/nmcli con up team0
+      listen: restart team0
