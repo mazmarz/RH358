@@ -1,0 +1,9 @@
+hosts:
+- name: rh3
+  ip: 10.0.2.6
+- name: ns
+  ip: 10.0.2.6
+- name: rh1
+  ip: 10.0.2.5
+- name: rh2
+  ip: 10.0.2.4
