@@ -25,6 +25,15 @@
       setype: named_conf_t
     notify: restart named
 
+  - name: add required zone file
+    template:
+      src: /home/devops/RH358/files/named.home.local.template
+      dest: /var/named/named.home.local
+      group: named
+      mode: '0640'
+      setype: named_zone_t
+    notify: restart named
+
 
   handlers:
   
