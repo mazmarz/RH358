@@ -60,6 +60,11 @@ zone "home.it" IN {
 	file "named.home.local";
 };
 
+zone "2.0.10.in-addr.arpa" IN {
+	type master;
+ 	file "named.reverse.local";
+};
+
 };
 view "external" {
  match-clients {any;};

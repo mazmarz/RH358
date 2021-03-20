@@ -1,0 +1,12 @@
+$TTL 3H
+@	IN SOA	rh3.home.it. root.home.it. (
+					9	; serial
+					1D	; refresh
+					1H	; retry
+					1W	; expire
+					3H )	; minimum
+	IN NS	ns.home.it.
+
+{% for host in hosts %}
+{{ host.ip | regex_replace('^[0-9]+.[0-9]+.[0-9]+.([0-9]+)','\\1') }} IN PTR {{ host.name }}.home.it.
+{% endfor %}
