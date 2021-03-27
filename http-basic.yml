@@ -1,0 +1,52 @@
+---
+- hosts: webserver
+  become: yes
+  tasks:
+
+  - name: install httpd server and manual
+    yum:
+      name: "{{ item }}"
+      state: installed
+    loop:
+    - httpd
+    - httpd-manual
+
+  - name: enabled httpd service
+    service:
+      name: httpd
+      enabled: yes
+      state: started
+    register: start
+    ignore_errors: true
+  
+  - block:
+
+    - name: debug
+      command: journalctl -xe  -u httpd
+      register: output
+
+
+    - name: output
+      debug:
+        var: output
+
+    when: start.failed 
+
+  - name: open firewall
+    firewalld:
+      service: http
+      state: enabled
+      permanent: true
+      immediate: true
+
+  - name: change index file
+    copy:
+      content: "Hello there!!!"
+      dest: /var/www/html/index.html
+
+  - name: check that it works
+    uri:
+      url: http://localhost
+      return_content: true
+    register: this
+    failed_when: "'Hello' not in this.content"

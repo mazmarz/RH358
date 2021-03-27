@@ -1,0 +1,24 @@
+---
+- hosts: webserver
+  become: true
+  tasks:
+
+  - name: create private key
+    openssl_privatekey:
+      path: /root/key.pem
+      state: present
+
+  - name: create private key
+    openssl_csr:
+      path: /root/key.csr
+      common_name: www.home.local
+      privatekey_path: /root/key.pem
+      state: present
+  
+  - name: create certificate
+    openssl_certificate:
+      path: /root/key.ctr
+      privatekey_path: /root/key.pem
+      csr_path: /root/key.csr
+      provider: selfsigned
+
