@@ -27,8 +27,8 @@
 
 
     - name: output
-      debug:
-        var: output
+      fail:
+        msg: "{{ output }}"
 
     when: start.failed 
 

@@ -1,0 +1,17 @@
+---
+- hosts: rh3
+  become: true
+  tasks:
+
+  - name: get list of files to fetch conf.d
+    find:
+      path: /etc/httpd/conf.d/
+    register: find
+
+  - name: fetch these files
+    fetch:
+      src: "{{ item.path }}"
+      dest: "files/{{ item.path | basename }}"
+      flat: true
+    loop: "{{ find.files }}"
+    
