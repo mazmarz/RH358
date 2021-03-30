@@ -1,0 +1,9 @@
+---
+- hosts: webserver
+  become: 1
+  tasks:
+
+  - name: install appstream
+    dnf:
+      name: '@nginx:1.16'
+      state: present
