@@ -1,0 +1,85 @@
+---
+- hosts: rh1
+  become: 1
+  tasks:
+
+  - name: add sambamount user
+    user:
+      shell: /sbin/nologin
+      name: sambamount
+      create_home: 0
+      password: "{{ sambamount_pass | password_hash('sha256','saltit') }}"
+
+  - name: add group for samba share
+    group:
+      name: devops
+      state: present
+
+  - name: install samba
+    yum:
+      name: samba
+      state: present
+
+  - name: edit samba file
+    blockinfile:
+      path: /etc/samba/smb.conf
+      block: |
+        [devops]
+           path = /smbshare
+           write list = @devops
+      insertafter: 'EOF'
+      validate: testparm -s %s
+    notify: reload samba
+
+  - name: insert paassword
+    command: 
+      cmd: /usr/bin/smbpasswd sambamount
+      stdin: "{{ sambamount_pass }}\n{{ sambamount_pass }}"
+
+  - name: mkdir share point
+    file:
+      state: directory
+      path: /smbshare
+      setype: samba_share_t
+      mode: '2770'
+      owner: sambamount
+      group: devops
+
+  - name: enable samba service
+    service:
+      name: smb
+      state: started
+      enabled: 1
+
+  handlers:
+
+  - name: reload samba
+    service:
+      name: smb
+      state: reloaded
+
+- hosts: rh2
+  become: 1
+  tasks:
+
+  - name: copy over mount password info
+    copy:
+      content: |
+        user=sambamount
+        password={{ sambamount_pass }}
+      dest: /etc/smbmount.perm
+      owner: root
+      mode: 600
+
+  - name: install needed utils
+    yum:
+      name: cifs-utils
+      state: present
+
+  - name: mount the filesystem
+    mount:
+      src: //10.0.2.5/smbshare
+      path: /smbshare
+      fstype: cifs
+      opts: credentials=/etc/smbmount.perm
+      state: mounted

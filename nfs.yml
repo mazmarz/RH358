@@ -1,0 +1,53 @@
+---
+- hosts: all
+  become: 1
+  gather_facts: 0
+  vars:
+    share_path: /srv/operators
+  tasks:
+
+  - name: create operators group
+    group:
+      name: operators
+      state: present
+
+  - name: create share directory
+    file:
+      state: directory
+      path: "{{ share_path }}"
+      owner: root
+      group: operators
+      mode: '2770'
+
+  - name: install nfs server
+    yum:
+      name: nfs-utils
+      state: present
+
+  - name: create exports file
+    copy:
+      content: |
+        {{ share_path }} {{ hostvars['rh2']['ansible_host'] }}(rw)
+      dest: /etc/exports.d/operators.share
+    delegate_to: rh1
+    notify: export
+    changed_when: 1
+
+  - name: start nfs server
+    service:
+      name: nfs-server
+      state: started
+      enabled: true
+
+  - name: open nfs
+    firewalld:
+      service: nfs
+      state: enabled
+      immediate: 1
+      permanent: 1
+
+  handlers:
+  - name: restart export
+    command:
+      cmd: exportfs -a
+    listen: export

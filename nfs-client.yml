@@ -1,0 +1,14 @@
+---
+- name: client nfs
+  hosts: rh2
+  gather_facts: 0
+  become: 1
+  tasks:
+
+  - name: mount nfs
+    mount:
+      path: /srv/operators
+      state: absent
+      fstype: nfs
+      src: 10.0.2.5:/srv/operators
+

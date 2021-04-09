@@ -1,0 +1,12 @@
+---
+- name: find nfs mounts
+  hosts: rh2
+  become: 1
+  tasks:
+
+  - name: print out nfs mounts
+    debug:
+      msg: |
+       mount point: {{ item.mount }}
+       src: {{ item.device }}
+    loop: "{{ ansible_mounts | selectattr('fstype','equalto','nfs4') | list }}"

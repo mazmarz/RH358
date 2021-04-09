@@ -1,0 +1,13 @@
+---
+- name: find nfs mounts
+  hosts: rh2
+  become: 1
+  tasks:
+
+  - name: umount nfs4 filesystems
+    mount:
+      path: "{{ item.mount }}"
+      state: unmounted
+    loop: "{{ ansible_mounts | selectattr('fstype','equalto','nfs4') | list }}"
+
+    
