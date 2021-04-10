@@ -1,0 +1,22 @@
+---
+- hosts: rh2
+  become: 1
+  tasks:
+
+  - name: hello
+    debug:
+      msg: |
+        "hello"
+
+  roles:
+  - name: prova
+    storage_pools:
+      - name: prova
+        disks:
+          - sdc
+        volumes:
+          - name: shared
+            size: "100 GiB"
+            mount_point: /mnt/prova
+            fs_type: xfs
+            state: present
