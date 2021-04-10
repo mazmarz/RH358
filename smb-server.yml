@@ -60,6 +60,7 @@
 
 - hosts: rh2
   become: 1
+  tags: client
   tasks:
 
   - name: copy over mount password info
@@ -83,3 +84,22 @@
       fstype: cifs
       opts: credentials=/etc/smbmount.perm
       state: mounted
+
+  - name: add group for samba share
+    group:
+      name: devops
+      state: present
+
+  - name: add sambamount user
+    user:
+      name: "{{ item.user }}"
+      group: devops
+      shell: /bin/bash
+      create_home: 1
+      state: present
+      password: "{{ item.pass | password_hash('sha512','redhatsalt') }}"
+    loop:
+    - user: 'bob'
+      pass: 'redhat'
+    - user: 'jane'
+      pass: 'redhat'
