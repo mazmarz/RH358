@@ -1,0 +1,6 @@
+---
+- hosts: team
+  become: 1
+  roles:
+
+  - name: rhel-system-roles.network

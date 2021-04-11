@@ -1,0 +1,20 @@
+network_connections:
+- name: team0
+  type: team
+  ip:
+    address:
+    - 10.2.0.2/16
+
+- name: port0-team
+  type: ethernet
+  slave_type: team
+  master: team0
+  state: up
+  interface_name: enp0s8
+
+- name: port1-team
+  type: ethernet
+  slave_type: team
+  master: team0
+  state: up
+  interface_name: enp0s9
