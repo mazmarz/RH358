@@ -3,20 +3,36 @@
   become: 1
   tasks:
 
-  - name: hello
+  - name: discover and loggin into target
+    open_iscsi:
+      target: iqn.2021-04.home.local:rh3
+      portal: 10.0.2.6
+      login: 1
+      discover: 1
+    register: target
+
+  - name: print target
     debug:
       msg: |
-        "hello"
+        {{ target }}
 
-  roles:
-  - name: prova
-    storage_pools:
-      - name: prova
-        disks:
-          - sdc
-        volumes:
-          - name: shared
-            size: "100 GiB"
-            mount_point: /mnt/prova
-            fs_type: xfs
-            state: present
+
+# BROKE!!!
+#  roles:
+#  - name: rhel-system-roles.storage
+#    storage_volumes:
+#      - name: prova
+#        disks:
+#        - /dev/sdc
+#        volumes:
+#          - name: shared
+#            size: "200 MiB"
+#            mount_point: /mnt/prova
+#            fs_type: ext4
+#            state: present
+#            mount_options: _netdev
+#           # storage_safe_mode: false
+#
+
+
+
