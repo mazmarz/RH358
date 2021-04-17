@@ -1,0 +1,83 @@
+---
+- hosts: nfs_server
+  become: 1
+  gather_facts: 0
+  tasks:
+
+  - name: gather facts of clients
+    setup:
+    delegate_to: "{{ item }}"
+    delegate_facts: true
+    loop: "{{ groups.nfs_client }}"
+
+  - name: install nfs
+    yum:
+      name: nfs-utils
+      state: present
+
+  - name: enable and start service
+    service:
+      name: nfs-server
+      enabled: 1
+      state: started
+
+  - name: create directory for sharing
+    file:
+      path: /srv/nfs_share
+      owner: root
+      group: devops
+      state: directory
+      mode: '2770'
+
+  - name: open firewall
+    firewalld:
+      service: nfs
+      state: enabled
+      immediate: 1
+      permanent: 1
+
+  - name: create exportfs file
+    copy:
+      content: |
+        /srv/nfs_share {{ hostvars[item]['ansible_facts']['default_ipv4']['address'] }}(rw)
+      dest: /etc/exports.d/share.exports
+      mode: '0644'
+      owner: root
+    loop: "{{ groups.nfs_client }}"
+    notify: reload nfs
+
+  handlers:
+
+  - name: reload nfs
+    service:
+      name: nfs-server
+      state: restarted
+      
+- name: starting client side
+  hosts: nfs_client
+  become: 1
+  tags: client
+  tasks:
+
+  - name: ensure group exists
+    group:
+      name: devops
+      state: present
+
+  - name: attach users
+    user:
+      name: "{{ item }}"
+      state: present
+      groups: devops
+    loop:
+    - joe
+    - jack
+    - bob
+
+  - name: mount the share
+    mount:
+      src: 10.0.2.4:/srv/nfs_share
+      path: /srv/nfs_server
+      state: mounted
+      fstype: nfs
+      opts: _netdev
