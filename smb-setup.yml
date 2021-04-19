@@ -1,0 +1,96 @@
+---
+- name: setup server
+  hosts: rh2
+  become: 1
+  tasks:
+
+  - name: install samba
+    yum:
+      name: samba
+      state: installed
+
+  - name: add group
+    group:
+      name: users
+      state: present
+
+  - name: add smb mount user
+    user:
+      name: "{{ item.name }}"
+      shell: /sbin/nologin
+      groups: users
+    loop: "{{ users }}"
+
+
+  - name: create smbmounter passwd
+    command:
+      cmd: "smbpasswd -a {{ item.name }}"
+      stdin: "{{ smb_passwd }}\n{{ smb_passwd }}"
+    loop: "{{ users }}"
+
+  - name: create directory to share
+    file:
+      state: directory
+      path: /srv/share_smb
+      mode: '2775'
+      owner: root
+      group: users
+      setype: samba_share_t
+
+  - name: add file to samba conf for share
+    blockinfile:
+      path: /etc/samba/smb.conf
+      block: |
+        [users]
+        path = /srv/share_smb
+        write list = @users
+      validate: testparm -s %s
+    notify: restart smb
+
+  - name: start smb service
+    service:
+      name: smb
+      state: started
+      enabled: 1
+
+  - name: open firewall
+    firewalld:
+      service: samba
+      state: enabled
+      immediate: 1
+      permanent: 1
+
+  handlers:
+  
+  - name: restart smb
+    service:
+      name: smb
+      state: restarted
+
+- name: setup client
+  hosts: rh3
+  become: 1
+  tags: client
+  tasks:
+
+  - name: install cifs tools
+    yum:
+      name: cifs-utils
+      state: installed
+
+  - name: create the credentials file
+    copy:
+      content: |
+        username=smbmounter
+        password={{ smb_passwd }}
+      dest: /etc/smb-credentials.txt
+      mode: '0600'
+      owner: root
+
+  - name: mount smb shre
+    mount:
+      path: /srv/share_cifs
+      src: //10.0.2.4/users
+      opts: cred=/etc/smb-credentials.txt,multiuser
+      fstype: cifs
+      state: mounted
