@@ -1,0 +1,66 @@
+---
+- name: setup nginx
+  hosts: rh2
+  become: 1
+  vars:
+    servers:
+    - servera.lab.example.com
+    - serverc.lab.example.com
+  tasks:
+
+  - name: install nginx
+    yum: 
+      name: nginx
+      state: present
+
+  - name: place certs in proper place
+    copy:
+      src: "files/{{ item }}.crt"
+      dest: "/etc/pki/tls/certs/{{ item }}.crt"
+    loop: "{{ servers }}"
+
+  - name: place keys in proper place
+    copy:
+      src: "files/{{ item }}.key"
+      dest: "/etc/pki/tls/private/{{ item }}.key"
+      mode: '0600'
+    loop: "{{ servers }}"
+
+  - name: copy over config file for nginx
+    template:
+      src: templates/nginx.conf.j2
+      dest: "/etc/nginx/conf.d/{{ item }}-nginx.conf"
+    loop: "{{ servers }}"
+
+  - name: create directorys for indexs
+    file:
+      state: directory
+      path: "/srv/www/{{ item }}"
+      setype: httpd_sys_content_t 
+      mode: '0775'
+    loop: "{{ servers }}"
+
+  - name: copy over index templates
+    template:
+      src: templates/sample-index.html.j2
+      dest: "/srv/www/{{ item }}/index.html"
+      setype: httpd_sys_content_t
+      mode: '0664'
+    loop: "{{ servers }}"
+
+  - name: open firewall rules
+    firewalld:
+      service: "{{ item }}"
+      state: enabled
+      immediate: 1
+      permanent: 1
+    loop:
+    - http
+    - https
+
+  - name:  start service
+    service:
+      name: nginx
+      state: started
+
+  

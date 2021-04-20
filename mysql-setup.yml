@@ -1,0 +1,42 @@
+---
+- name: setup mysql
+  hosts: rh2
+  become: 1
+  tasks:
+
+  - name: install mysql
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop:
+    - mariadb-server
+    - python3-PyMySQL
+
+  - name: start up service
+    service:
+      name: mariadb
+      state: started
+      enabled: 1
+
+  - name: copy across sql dump
+    copy:
+      src: mariadb/legacy-database.sql
+      dest: /tmp/legacy.sql
+
+  - name: create db
+    mysql_db:
+      login_user: root
+      login_password: redhat
+      name: legacy
+      state: present
+
+  - name: load the damn thing
+    shell: mysql -uroot -predhat legacy < /tmp/legacy.sql
+
+  - name: mysql user
+    mysql_user:
+      login_user: root
+      login_password: redhat
+      name: mary
+      password: mary_password
+      priv: "legacy.*:SELECT"
