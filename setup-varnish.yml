@@ -1,0 +1,63 @@
+---
+- name: setup varnish
+  hosts: rh3
+  vars:
+    webserver: rh2
+    port: '9000'
+  become: 1
+  tasks:
+
+  - name: install varnish
+    yum:
+      name: varnish
+      state: present
+
+  - name: create system varnish directory
+    file:
+      state: directory
+      mode: '0755'
+      path: /etc/systemd/system/varnish.service.d
+
+  - name: copy over overwriting 
+    copy:
+      src: files/port.conf.j2
+      dest: /etc/systemd/system/varnish.service.d/port.conf
+    notify: reload daemon
+
+  - name: open up firewall
+    firewalld:
+      state: enabled
+      immediate: 1
+      port: 9000/tcp
+      permanent: 1
+
+  - name: gather facts on web server
+    setup:
+    delegate_to: "{{ webserver }}"
+    delegate_facts: 1
+
+  - name: copy over vcl file
+    template:
+      src: files/vcl.default
+      dest: /etc/varnish/default.vcl
+      mode: '0644'
+      validate: varnishd -C -f %s
+    notify: reload varnish
+
+  - name: service
+    service:
+      state: started
+      enabled: 1
+      name: varnish
+
+  handlers:
+
+  - name: reload varnish
+    service:
+      name: varnish
+      state: restarted
+
+  - name: reload daemon
+    service:
+      name: systemd
+      daemon_reload: 1
