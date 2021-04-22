@@ -3,7 +3,7 @@
   hosts: rh3
   vars:
     webserver: rh2
-    port: '9000'
+    varnish_port: '9000'
   become: 1
   tasks:
 
@@ -19,7 +19,7 @@
       path: /etc/systemd/system/varnish.service.d
 
   - name: copy over overwriting 
-    copy:
+    template:
       src: files/port.conf.j2
       dest: /etc/systemd/system/varnish.service.d/port.conf
     notify: reload daemon
@@ -44,6 +44,9 @@
       validate: varnishd -C -f %s
     notify: reload varnish
 
+  - name: meta flush
+    meta: flush_handlers
+  
   - name: service
     service:
       state: started
@@ -57,7 +60,14 @@
       name: varnish
       state: restarted
 
-  - name: reload daemon
+  - name: systemd restart
     service:
       name: systemd
       daemon_reload: 1
+    listen: reload daemon
+
+  - name: varnish restart
+    service:
+      name: varnish
+      state: restarted
+    listen: reload daemon

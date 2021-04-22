@@ -32,6 +32,11 @@
       dest: "/etc/nginx/conf.d/{{ item }}-nginx.conf"
     loop: "{{ servers }}"
 
+  - name: copy over default config file for nginx
+    template:
+      src: templates/nginx-default.conf.j2
+      dest: "/etc/nginx/conf.d/default-nginx.conf"
+      
   - name: create directorys for indexs
     file:
       state: directory
