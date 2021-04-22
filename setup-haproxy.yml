@@ -1,0 +1,41 @@
+---
+- name: setup haproxy
+  hosts: rh1
+  vars:
+    port: '80'
+    varnish_server: '10.0.2.6:9000'
+  become: 1
+  tasks:
+
+  - name: install haproxy
+    yum:
+      name: haproxy
+      state: present
+
+  - name: assemble the key
+    assemble:
+      src: /home/devops/RH358/files/
+      regexp: 'servera.lab.example.com.(crt|key)'
+      dest: /etc/haproxy/site.pem
+      mode: '0600'
+
+  - name: copy over config file
+    template:
+      src: files/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+      mode: '0644'
+      validate: haproxy -c -f %s
+    notify: restart haproxy
+
+  - name: start and enable the service
+    service:
+      name: haproxy
+      state: started
+      enabled: 1
+
+  handlers:
+
+  - name: restart haproxy
+    service:
+      name: haproxy
+      state: restarted
