@@ -1,6 +1,6 @@
 ---
 - name: setup smtp
-  hosts: rh2
+  hosts: all
   become: 1
   tasks:
 
@@ -10,6 +10,8 @@
     vars:
       postfix_check: true
       postfix_conf:
-        relayhost: rh3.local.home
+        relayhost: "[smtp.local.home]"
         myorigin: lab.local.home
-        mynetworks: "{{ groups['all'] }}"
+        mynetworks: "127.0.0.1/8 [::1]/128"
+        mydomain: ""
+        inet_interface: loopback-only
